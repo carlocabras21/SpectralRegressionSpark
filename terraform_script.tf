@@ -17,10 +17,9 @@ provider "aws" {
   region     = "us-east-1"
   
   # questi dati vanno presi ogni volta da "Account Details" dentro vocareum
-  # NASCONDERLI QUANDO CARICARE SU GITHUB
-  access_key = ""
-  secret_key = ""
-  token = ""
+  access_key = var.access-key # values inside an external .tf file
+  secret_key = var.secret-key
+  token = var.token
 }
 
 # prendere questi codici dalla console aws
