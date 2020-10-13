@@ -8,6 +8,11 @@
 # https://stackoverflow.com/questions/59708577/can-i-do-ssh-into-my-ec2-instance-created-by-terraform
 
 
+# Resource: aws_emr_cluster, Example bootable config
+# https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/emr_cluster#example-bootable-config
+
+
+
 terraform {
   required_providers {
     aws = {
@@ -16,7 +21,6 @@ terraform {
     }
   }
 }
-
 
 provider "aws" {
   region     = "us-east-1"
@@ -27,25 +31,214 @@ provider "aws" {
   token = var.token
 }
 
-resource "aws_instance" "main_instance" {
-  # prendere questi codici dalla console aws
-  ami           = "ami-0dba2cb6798deb6d8"
-  instance_type = "t2.micro"
 
-  key_name      = var.key_name # a key-pair that I have created
+###
 
-  # originally security_groups but it wasn't working
-  vpc_security_group_ids = [aws_security_group.ingress-all.id]
+# IAM Role setups
 
-  subnet_id = aws_subnet.subnet-uno.id
+###
+
+# IAM role for EMR Service
+resource "aws_iam_role" "iam_emr_service_role" {
+  name = "iam_emr_service_role"
+
+  assume_role_policy = <<EOF
+{
+  "Version": "2008-10-17",
+  "Statement": [
+    {
+      "Sid": "",
+      "Effect": "Allow",
+      "Principal": {
+        "Service": "elasticmapreduce.amazonaws.com"
+      },
+      "Action": "sts:AssumeRole"
+    }
+  ]
 }
+EOF
+}
+
+resource "aws_iam_role_policy" "iam_emr_service_policy" {
+  name = "iam_emr_service_policy"
+  role = aws_iam_role.iam_emr_service_role.id
+
+  policy = <<EOF
+{
+    "Version": "2012-10-17",
+    "Statement": [{
+        "Effect": "Allow",
+        "Resource": "*",
+        "Action": [
+            "ec2:AuthorizeSecurityGroupEgress",
+            "ec2:AuthorizeSecurityGroupIngress",
+            "ec2:CancelSpotInstanceRequests",
+            "ec2:CreateNetworkInterface",
+            "ec2:CreateSecurityGroup",
+            "ec2:CreateTags",
+            "ec2:DeleteNetworkInterface",
+            "ec2:DeleteSecurityGroup",
+            "ec2:DeleteTags",
+            "ec2:DescribeAvailabilityZones",
+            "ec2:DescribeAccountAttributes",
+            "ec2:DescribeDhcpOptions",
+            "ec2:DescribeInstanceStatus",
+            "ec2:DescribeInstances",
+            "ec2:DescribeKeyPairs",
+            "ec2:DescribeNetworkAcls",
+            "ec2:DescribeNetworkInterfaces",
+            "ec2:DescribePrefixLists",
+            "ec2:DescribeRouteTables",
+            "ec2:DescribeSecurityGroups",
+            "ec2:DescribeSpotInstanceRequests",
+            "ec2:DescribeSpotPriceHistory",
+            "ec2:DescribeSubnets",
+            "ec2:DescribeVpcAttribute",
+            "ec2:DescribeVpcEndpoints",
+            "ec2:DescribeVpcEndpointServices",
+            "ec2:DescribeVpcs",
+            "ec2:DetachNetworkInterface",
+            "ec2:ModifyImageAttribute",
+            "ec2:ModifyInstanceAttribute",
+            "ec2:RequestSpotInstances",
+            "ec2:RevokeSecurityGroupEgress",
+            "ec2:RunInstances",
+            "ec2:TerminateInstances",
+            "ec2:DeleteVolume",
+            "ec2:DescribeVolumeStatus",
+            "ec2:DescribeVolumes",
+            "ec2:DetachVolume",
+            "iam:GetRole",
+            "iam:GetRolePolicy",
+            "iam:ListInstanceProfiles",
+            "iam:ListRolePolicies",
+            "iam:PassRole",
+            "s3:CreateBucket",
+            "s3:Get*",
+            "s3:List*",
+            "sdb:BatchPutAttributes",
+            "sdb:Select",
+            "sqs:CreateQueue",
+            "sqs:Delete*",
+            "sqs:GetQueue*",
+            "sqs:PurgeQueue",
+            "sqs:ReceiveMessage"
+        ]
+    }]
+}
+EOF
+}
+
+# IAM Role for EC2 Instance Profile
+resource "aws_iam_role" "iam_emr_profile_role" {
+  name = "iam_emr_profile_role"
+
+  assume_role_policy = <<EOF
+{
+  "Version": "2008-10-17",
+  "Statement": [
+    {
+      "Sid": "",
+      "Effect": "Allow",
+      "Principal": {
+        "Service": "ec2.amazonaws.com"
+      },
+      "Action": "sts:AssumeRole"
+    }
+  ]
+}
+EOF
+}
+
+resource "aws_iam_instance_profile" "emr_profile" {
+  name = "emr_profile"
+  role = aws_iam_role.iam_emr_profile_role.name
+}
+
+resource "aws_iam_role_policy" "iam_emr_profile_policy" {
+  name = "iam_emr_profile_policy"
+  role = aws_iam_role.iam_emr_profile_role.id
+
+  policy = <<EOF
+{
+    "Version": "2012-10-17",
+    "Statement": [{
+        "Effect": "Allow",
+        "Resource": "*",
+        "Action": [
+            "cloudwatch:*",
+            "dynamodb:*",
+            "ec2:Describe*",
+            "elasticmapreduce:Describe*",
+            "elasticmapreduce:ListBootstrapActions",
+            "elasticmapreduce:ListClusters",
+            "elasticmapreduce:ListInstanceGroups",
+            "elasticmapreduce:ListInstances",
+            "elasticmapreduce:ListSteps",
+            "kinesis:CreateStream",
+            "kinesis:DeleteStream",
+            "kinesis:DescribeStream",
+            "kinesis:GetRecords",
+            "kinesis:GetShardIterator",
+            "kinesis:MergeShards",
+            "kinesis:PutRecord",
+            "kinesis:SplitShard",
+            "rds:Describe*",
+            "s3:*",
+            "sdb:*",
+            "sns:*",
+            "sqs:*"
+        ]
+    }]
+}
+EOF
+}
+
+resource "aws_emr_cluster" "cluster" {
+  name = "emr-test-arn"
+  release_label = "emr-4.6.0"
+  applications = [
+    "Spark"]
+
+  service_role = aws_iam_role.iam_emr_service_role.arn
+
+  termination_protection = false
+  keep_job_flow_alive_when_no_steps = true
+
+  ec2_attributes {
+    key_name      = var.key_name
+    subnet_id = aws_subnet.subnet-uno.id
+    emr_managed_master_security_group = aws_security_group.ingress-all.id
+    emr_managed_slave_security_group = aws_security_group.ingress-all.id
+    instance_profile = aws_iam_instance_profile.emr_profile.arn
+
+  }
+
+  master_instance_group {
+    instance_type = "m4.large"
+  }
+
+  core_instance_group {
+    instance_type = "c4.large"
+    instance_count = 1
+
+    ebs_config {
+      size                 = "40"
+      type                 = "gp2"
+      volumes_per_instance = 1
+    }
+
+  }
+}
+
+
 
 # print the public dns in order to connect it via ssh
 # ssh -i "<key_name>.pem" <username>@<public_dns>
-# where <username> = ubuntu
+# where <username> = hadoop
 output "public_dns" {
   description = "The public ip for ssh access"
-  value       = aws_instance.main_instance.public_dns
+  value       = aws_emr_cluster.cluster.master_public_dns
 }
 
 
@@ -85,12 +278,12 @@ resource "aws_security_group" "ingress-all" {
   }
 }
 
-
+/*
 # attaching an elastic IP to be able to access the instance
 resource "aws_eip" "elastic-IP" {
-  instance = aws_instance.main_instance.id
+  instance = aws_emr_cluster.cluster.id
   vpc      = true
-}
+}*/
 
 # Setting up an internet gateway in order to route traffic from the internet to our VPC
 resource "aws_internet_gateway" "main-gateway" {
@@ -112,16 +305,16 @@ resource "aws_route_table_association" "subnet-association" {
 }
 
 
-
-# assegnare un nome univoco GLOBALE alla risorsa
+/*
+# creazione bucket
 resource "aws_s3_bucket" "main-bucket" {
-  bucket = "spectral-regression-spark-bucket"
+  bucket = "spectral-regression-spark-bucket" # assegnare un nome univoco GLOBALE alla risorsa
 }
 
+# upload di file dentro il bucket
 resource "aws_s3_bucket_object" "file-upload" {
   bucket = aws_s3_bucket.main-bucket.id
   key    = "test.csv" # nome che il file avrà dentro il bucket
   source = "src/main/resources/test.csv"
 }
-
-
+*/
