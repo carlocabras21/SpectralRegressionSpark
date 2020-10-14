@@ -1,7 +1,7 @@
-import org.apache.spark.ml.Pipeline
 import org.apache.spark.ml.evaluation.RegressionEvaluator
 import org.apache.spark.ml.feature.VectorAssembler
 import org.apache.spark.ml.regression.DecisionTreeRegressor
+import org.apache.spark.ml.tuning.{CrossValidator, ParamGridBuilder}
 import org.apache.spark.sql.SparkSession
 import org.apache.spark.sql.types.{FloatType, StringType, StructType}
 import org.apache.spark.{SparkConf, SparkContext}
@@ -55,14 +55,54 @@ object SpectralRegressionSpark {
         println("df2 schema:")
         df2.printSchema()
 
-        // keep the features in a single vector
+        // keep the features in a single vector named "features"
         val assembler = new VectorAssembler()
                           .setInputCols(Array("u_g", "g_r", "r_i", "i_z"))
                           .setOutputCol("features")
 
+        // remove old features, now df3 consists in "features" vector and "redshift" class-label
         val df3 = assembler.transform(df2).drop("u_g", "g_r", "r_i", "i_z")
         println("df3 schema:")
         df3.printSchema()
+
+        // Split the data into training and test sets
+        val Array(trainingData, testData) = df3.randomSplit(Array(0.9, 0.1))
+
+        // Train a DecisionTree model.
+        val dt = new DecisionTreeRegressor()
+            .setLabelCol("redshift")
+            .setFeaturesCol("features")
+            .setMaxDepth(4)
+
+        val paramGrid = new ParamGridBuilder().build()
+
+        // Select (prediction, true label) and compute test error.
+        val evaluator = new RegressionEvaluator()
+            .setLabelCol("redshift")
+            .setPredictionCol("prediction")
+            .setMetricName("rmse")
+
+        val cv = new CrossValidator()
+            .setEstimator(dt)
+            .setEvaluator(evaluator)
+            .setEstimatorParamMaps(paramGrid)
+            .setNumFolds(3)  // Use 3+ in practice
+//            .setParallelism(2)  // Evaluate up to 2 parameter settings in parallel
+
+
+        // Train model. This also runs the indexer.
+        val cvModel = cv.fit(trainingData)
+
+        // Make predictions.
+        val predictions = cvModel.transform(testData)
+
+
+        val rmse = evaluator.evaluate(predictions)
+        println(s"Root Mean Squared Error (RMSE) on test data = $rmse")
+
+
+        /* parte con training set e test set
+        // dopo la creazione di df3
 
         // Train a DecisionTree model.
         val dt = new DecisionTreeRegressor()
@@ -78,7 +118,6 @@ object SpectralRegressionSpark {
         val pipeline = new Pipeline()
             .setStages(Array(dt))
 
-        // Train model. This also runs the indexer.
         val model = pipeline.fit(trainingData)
 
         // Make predictions.
@@ -92,6 +131,7 @@ object SpectralRegressionSpark {
         val rmse = evaluator.evaluate(predictions)
         println(s"Root Mean Squared Error (RMSE) on test data = $rmse")
 
+         */
 
 //        val treeModel = model.stages(1).asInstanceOf[DecisionTreeRegressionModel]
 //        println(s"Learned regression tree model:\n ${treeModel.toDebugString}")
