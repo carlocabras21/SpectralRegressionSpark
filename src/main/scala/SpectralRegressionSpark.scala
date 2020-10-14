@@ -30,7 +30,8 @@ object SpectralRegressionSpark {
             .add("redshift",      FloatType)
 
         // read only one file
-        val inputFile = "src/main/resources/spectral_data_class.csv"
+//        val inputFile = "src/main/resources/spectral_data_class.csv"
+        val inputFile = "src/main/resources/test.csv"
         val df = spark.read.option("header",value = true).schema(schema).csv(inputFile)
         println("df schema:")
         df.printSchema()
@@ -50,7 +51,7 @@ object SpectralRegressionSpark {
                     .drop("spectroFlux_i")
                     .drop("spectroFlux_z")
                     .drop("source_class")
-                    .limit(10000) // for testing
+//                    .limit(10000) // for testing
 
         println("df2 schema:")
         df2.printSchema()
