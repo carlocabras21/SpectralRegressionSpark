@@ -2,19 +2,41 @@ from pyspark.ml.evaluation import RegressionEvaluator
 from pyspark.ml.feature import VectorAssembler
 from pyspark.ml.regression import DecisionTreeRegressor
 from pyspark.ml.tuning import CrossValidator, ParamGridBuilder
-from pyspark.sql import SparkSession
-from pyspark.sql.types import FloatType, StringType, StructType, StructField
-from pyspark import SparkContext
+from pyspark.sql.types import FloatType, StringType, StructType, DoubleType, StructField
+from pyspark import SparkContext, SparkConf, SQLContext
 
+
+'''
+
+Capire perche' non riesco ad accedere ad S3.
+
+forse non ho fatto partire gli slave
+controllare le porte in entrata ed uscita dagli slave
+
+'''
+
+# sparkk 2.0+
+# from pyspark.sql import SparkSession
 
 # Create a Scala Spark Context.
-sc = SparkContext()
-spark = SparkSession \
-    .builder \
-    .appName("Python Spark training model") \
-    .config("spark.some.config.option", "some-value") \
-    .getOrCreate()
-spark.sparkContext.setLogLevel("ERROR")
+
+# spark 1.6 per EMR
+conf = SparkConf().setAppName("Spectral Regression in Spark")\
+    .set("spark.shuffle.service.enabled", "false")\
+    .set("spark.dynamicAllocation.enabled", "false")
+
+sc = SparkContext(conf=conf)
+sc.setLogLevel("WARN")
+sqlContext = SQLContext(sc)
+
+# spark 2.0+ per locale
+# sc = SparkContext()
+# spark = SparkSession \
+#     .builder \
+#     .appName("Python Spark training model") \
+#     .config("spark.some.config.option", "some-value") \
+#     .getOrCreate()
+# spark.sparkContext.setLogLevel("ERROR")
 
 # build the data scheme in the csv files
 schema = StructType([
@@ -24,17 +46,47 @@ schema = StructType([
     StructField("spectroFlux_i", FloatType(), True),
     StructField("spectroFlux_z", FloatType(), True),
     StructField("source_class",  StringType(), True),
-    StructField("redshift",      FloatType(), True)])
+    StructField("redshift",      DoubleType(), True)])
 
 
 # read only one file
 # inputFile = "src/main/resources/spectral_data_class.csv"
-inputFile = "src/main/resources/test.csv"
-df = spark.read.csv(inputFile, header=True, schema=schema)
+# inputFile = "home/SparkRegressionScala/src/main/resources/test.csv"
+inputFile  = "s3://spectral-regression-spark-bucket/test.csv"
+outputFile = "s3://spectral-regression-spark-bucket/output.txt"
+# df = spark.read.csv(inputFile, header=True, schema=schema)
+
+# df = sqlContext.read.format("com.databricks.spark.csv").option("header", "true").load(inputFile, schema=schema)
+
+print("\n\n\n*******\n\n\n")
+print(inputFile)
+print("\n\n\n*******\n\n\n")
+with open(outputFile) as f:
+    f.write("provaaa")
+
+# load CSV into RDD and transform it into a Dataframe
+rdd = sc.textFile(inputFile).map(lambda x: x.split(","))
+rdd.mapPartitionsWithIndex( lambda idx, other : other.drop(1) if idx == 0 else other)
+print(rdd.count())
+df = rdd.toDF(schema)
+
 print("df schema:")
 df.printSchema()
 
+print("\n\n\n *******\n\n\n")
+print(df.count())
+print("\n\n\n *******\n\n\n")
 
+print("\n\n\n *******\n\n\n")
+print(" FINE PROGRAMMA")
+print("\n\n\n *******\n\n\n")
+
+with open(outputFile) as f:
+    f.write(df.count())
+
+sc.stop()
+
+'''
 # show min and max values of redshift
 # df.agg(min("redshift"), max("redshift")).show()
 
@@ -43,7 +95,12 @@ df2 = df.withColumn("u_g", df["spectroFlux_u"] - df["spectroFlux_g"]) \
         .withColumn("g_r", df["spectroFlux_g"] - df["spectroFlux_r"]) \
         .withColumn("r_i", df["spectroFlux_r"] - df["spectroFlux_i"]) \
         .withColumn("i_z", df["spectroFlux_i"] - df["spectroFlux_z"]) \
-        .drop("spectroFlux_u", "spectroFlux_g", "spectroFlux_r", "spectroFlux_i", "spectroFlux_z", "source_class")
+        .drop("spectroFlux_u") \
+        .drop("spectroFlux_g") \
+        .drop("spectroFlux_r") \
+        .drop("spectroFlux_i") \
+        .drop("spectroFlux_z") \
+        .drop("source_class")
 #         .limit(10000) # for testing
 
 print("df2 schema:")
@@ -55,34 +112,31 @@ assembler = VectorAssembler() \
     .setOutputCol("features")
 
 # remove old features, now df3 consists in "features" vector and "redshift" class-label
-df3 = assembler.transform(df2).drop("u_g", "g_r", "r_i", "i_z")
+df3 = assembler.transform(df2) \
+    .drop("u_g")\
+    .drop("g_r")\
+    .drop("r_i")\
+    .drop("i_z")\
+
 print("df3 schema:")
 df3.printSchema()
 
-# Split the data into training and test sets
 trainingData, testData = df3.randomSplit([0.9, 0.1])
 
-# Train a DecisionTree model.
 dt = DecisionTreeRegressor(labelCol="redshift", featuresCol="features", maxDepth=4)
-
 paramGrid = ParamGridBuilder().build()
-
-# Select (prediction, true label) and compute test error.
 evaluator = RegressionEvaluator(labelCol="redshift", predictionCol="prediction", metricName="rmse")
 
 cv = CrossValidator(estimator=dt, evaluator=evaluator, estimatorParamMaps=paramGrid, numFolds=3)
-
-# Train model. This also runs the indexer.
 cvModel = cv.fit(trainingData)
-
-# Make predictions.
 predictions = cvModel.transform(testData)
-
 
 rmse = evaluator.evaluate(predictions)
 print("\n\n\n*******\n\n\n")
 print("Root Mean Squared Error (RMSE) on test data = " + str(rmse))
 print("\n\n\n*******")
+
+'''
 
 # /* parte con training set e test set
 # # dopo la creazione di df3
