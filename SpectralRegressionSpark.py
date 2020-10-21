@@ -7,6 +7,7 @@ from pyspark import SparkContext, SparkConf, SQLContext
 
 
 '''
+non so neanche se siano questi i problemi:
 
 Capire perche' non riesco ad accedere ad S3.
 
@@ -26,7 +27,7 @@ conf = SparkConf().setAppName("Spectral Regression in Spark")\
     .set("spark.dynamicAllocation.enabled", "false")
 
 sc = SparkContext(conf=conf)
-sc.setLogLevel("WARN")
+sc.setLogLevel("INFO")
 sqlContext = SQLContext(sc)
 
 # spark 2.0+ per locale
@@ -61,12 +62,13 @@ outputFile = "s3://spectral-regression-spark-bucket/output.txt"
 print("\n\n\n*******\n\n\n")
 print(inputFile)
 print("\n\n\n*******\n\n\n")
-with open(outputFile) as f:
-    f.write("provaaa")
+# with open(outputFile) as f:
+#     f.write("provaaa")
 
 # load CSV into RDD and transform it into a Dataframe
 rdd = sc.textFile(inputFile).map(lambda x: x.split(","))
 rdd.mapPartitionsWithIndex( lambda idx, other : other.drop(1) if idx == 0 else other)
+print("rdd count:")
 print(rdd.count())
 df = rdd.toDF(schema)
 
@@ -74,6 +76,7 @@ print("df schema:")
 df.printSchema()
 
 print("\n\n\n *******\n\n\n")
+print("df count:")
 print(df.count())
 print("\n\n\n *******\n\n\n")
 
@@ -81,8 +84,8 @@ print("\n\n\n *******\n\n\n")
 print(" FINE PROGRAMMA")
 print("\n\n\n *******\n\n\n")
 
-with open(outputFile) as f:
-    f.write(df.count())
+# with open(outputFile) as f:
+#     f.write(df.count())
 
 sc.stop()
 
