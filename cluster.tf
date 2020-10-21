@@ -201,6 +201,7 @@ resource "aws_emr_cluster" "cluster" {
   applications = [
     "Spark"]
 
+  log_uri = "s3://log-spectral-regression-spark-bucket"
   service_role = aws_iam_role.iam_emr_service_role.arn
 
   termination_protection = false
