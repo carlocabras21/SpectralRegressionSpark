@@ -175,6 +175,7 @@ resource "aws_iam_role_policy" "iam_emr_profile_policy" {
             "elasticmapreduce:ListInstanceGroups",
             "elasticmapreduce:ListInstances",
             "elasticmapreduce:ListSteps",
+            "elasticmapreduce:AddJobFlowSteps",
             "kinesis:CreateStream",
             "kinesis:DeleteStream",
             "kinesis:DescribeStream",
@@ -208,8 +209,10 @@ resource "aws_emr_cluster" "cluster" {
   ec2_attributes {
     key_name      = var.key_name
     subnet_id = aws_subnet.subnet-uno.id
-    emr_managed_master_security_group = aws_security_group.ingress-all.id
-    emr_managed_slave_security_group = aws_security_group.ingress-all.id
+    # emr_managed_master_security_group = aws_security_group.ingress-all.id
+    # emr_managed_slave_security_group = aws_security_group.ingress-all.id
+    emr_managed_master_security_group = aws_security_group.master_security_group.id
+    emr_managed_slave_security_group = aws_security_group.slave_security_group.id
     instance_profile = aws_iam_instance_profile.emr_profile.arn
 
   }
@@ -220,7 +223,7 @@ resource "aws_emr_cluster" "cluster" {
 
   core_instance_group {
     instance_type = "c4.large"
-    instance_count = 1
+    instance_count = 2
 
     ebs_config {
       size                 = "40"
@@ -229,7 +232,18 @@ resource "aws_emr_cluster" "cluster" {
     }
 
   }
+
 }
+
+// non funziona e non ho neanche capito a cosa serva
+//resource "aws_emr_instance_group" "task" {
+//  cluster_id     = aws_emr_cluster.cluster.id
+//  instance_count = 1
+//  instance_type  = "c4.large"
+//  name           = "my little instance group"
+//}
+
+
 
 # print the public dns in order to connect it via ssh
 # ssh -i "<key_name>.pem" <username>@<public_dns>
@@ -238,6 +252,12 @@ output "public_dns" {
   description = "The public ip for ssh access"
   value       = aws_emr_cluster.cluster.master_public_dns
 }
+
+output "id" {
+  description = "cluster id"
+  value       = aws_emr_cluster.cluster.id
+}
+
 
 
 

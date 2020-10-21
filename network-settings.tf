@@ -9,33 +9,13 @@ resource "aws_vpc" "main-VPC" {
 
 # set up a subnet in our newly created VPC
 resource "aws_subnet" "subnet-uno" {
-  cidr_block = cidrsubnet(aws_vpc.main-VPC.cidr_block, 3, 1)
   vpc_id = aws_vpc.main-VPC.id
+//  cidr_block = cidrsubnet(aws_vpc.main-VPC.cidr_block, 3, 1)
+
+  // questo valore e' lo stesso calcolato da ^ chiamato in terraform console
+  cidr_block = "10.0.32.0/19"
   availability_zone = "us-east-1a"
 }
-
-# define a security group that will allow anyone to connect through port 22.
-# it will also forward all traffic without restriction
-resource "aws_security_group" "ingress-all" {
-  name = "allow-all-sg"
-  vpc_id = aws_vpc.main-VPC.id
-  ingress {
-    cidr_blocks = [
-      "0.0.0.0/0"
-    ]
-    from_port = 22
-    to_port = 22
-    protocol = "tcp"
-  }
-  // Terraform removes the default rule
-  egress {
-    from_port = 0
-    to_port = 0
-    protocol = "-1"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-}
-
 
 
 # Setting up an internet gateway in order to route traffic from the internet to our VPC
@@ -56,3 +36,4 @@ resource "aws_route_table_association" "subnet-association" {
   subnet_id      = aws_subnet.subnet-uno.id
   route_table_id = aws_route_table.main-route-table.id
 }
+
