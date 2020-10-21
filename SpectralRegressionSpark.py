@@ -27,7 +27,7 @@ conf = SparkConf().setAppName("Spectral Regression in Spark")\
     .set("spark.dynamicAllocation.enabled", "false")
 
 sc = SparkContext(conf=conf)
-sc.setLogLevel("INFO")
+sc.setLogLevel("WARN")
 sqlContext = SQLContext(sc)
 
 # spark 2.0+ per locale
@@ -41,18 +41,18 @@ sqlContext = SQLContext(sc)
 
 # build the data scheme in the csv files
 schema = StructType([
-    StructField("spectroFlux_u", FloatType(), True),
-    StructField("spectroFlux_g", FloatType(), True),
-    StructField("spectroFlux_r", FloatType(), True),
-    StructField("spectroFlux_i", FloatType(), True),
-    StructField("spectroFlux_z", FloatType(), True),
+    StructField("spectroFlux_u", DoubleType(), True),
+    StructField("spectroFlux_g", DoubleType(), True),
+    StructField("spectroFlux_r", DoubleType(), True),
+    StructField("spectroFlux_i", DoubleType(), True),
+    StructField("spectroFlux_z", DoubleType(), True),
     StructField("source_class",  StringType(), True),
     StructField("redshift",      DoubleType(), True)])
 
 
 # read only one file
 # inputFile = "src/main/resources/spectral_data_class.csv"
-# inputFile = "home/SparkRegressionScala/src/main/resources/test.csv"
+# inputFile = "test.csv"
 inputFile  = "s3://spectral-regression-spark-bucket/test.csv"
 outputFile = "s3://spectral-regression-spark-bucket/output.txt"
 # df = spark.read.csv(inputFile, header=True, schema=schema)
@@ -62,15 +62,26 @@ outputFile = "s3://spectral-regression-spark-bucket/output.txt"
 print("\n\n\n*******\n\n\n")
 print(inputFile)
 print("\n\n\n*******\n\n\n")
+
+# f = open(outputFile,"w")
+# f.write("ciaoooo")
+# f.close()
+
 # with open(outputFile) as f:
 #     f.write("provaaa")
 
 # load CSV into RDD and transform it into a Dataframe
-rdd = sc.textFile(inputFile).map(lambda x: x.split(","))
-rdd.mapPartitionsWithIndex( lambda idx, other : other.drop(1) if idx == 0 else other)
-print("rdd count:")
-print(rdd.count())
-df = rdd.toDF(schema)
+rdd = sc.textFile(inputFile) #.map(lambda x: x.split(","))
+header = rdd.first() #extract header
+data = rdd.filter(lambda line:  line != header)   #filter out header
+# rdd.mapPartitionsWithIndex{ (idx, iter) => if (idx == 0) iter.drop(1) else iter }
+data_splitted = data.map(lambda l: l.split(','))
+data_mapped = data_splitted.map(lambda e: (float(e[0]), float(e[1]), float(e[2]), float(e[3]), float(e[4]), e[5], float(e[6]) ))
+print("data_mapped count:")
+print(data_mapped.count())
+# df = data.toDF(schema)
+# df = sqlContext.createDataFrame(data.map(lambda s: s.split(",")), schema)
+df = sqlContext.createDataFrame(data_mapped, schema)
 
 print("df schema:")
 df.printSchema()
@@ -80,16 +91,14 @@ print("df count:")
 print(df.count())
 print("\n\n\n *******\n\n\n")
 
-print("\n\n\n *******\n\n\n")
-print(" FINE PROGRAMMA")
-print("\n\n\n *******\n\n\n")
+
 
 # with open(outputFile) as f:
 #     f.write(df.count())
 
-sc.stop()
+# sc.stop()
 
-'''
+
 # show min and max values of redshift
 # df.agg(min("redshift"), max("redshift")).show()
 
@@ -125,6 +134,8 @@ print("df3 schema:")
 df3.printSchema()
 
 trainingData, testData = df3.randomSplit([0.9, 0.1])
+print("trainingData count")
+print(trainingData.count())
 
 dt = DecisionTreeRegressor(labelCol="redshift", featuresCol="features", maxDepth=4)
 paramGrid = ParamGridBuilder().build()
@@ -139,7 +150,12 @@ print("\n\n\n*******\n\n\n")
 print("Root Mean Squared Error (RMSE) on test data = " + str(rmse))
 print("\n\n\n*******")
 
-'''
+print("\n\n\n *******\n\n\n")
+print(" FINE PROGRAMMA")
+print("\n\n\n *******\n\n\n")
+
+sc.stop()
+
 
 # /* parte con training set e test set
 # # dopo la creazione di df3
