@@ -12,17 +12,13 @@ scp -i prima.pem SpectralRegressionSpark.py hadoop@PUBLIC_DNS:~/
 // connettiti al cluster
 ssh -i prima.pem hadoop@PUBLIC_DNS
 
-    // lancia il programma
-    spark-submit SpectralRegressionSpark.py
+    // lancia il programma se file inviato tramite scp
+    spark-submit --deploy-mode cluster SpectralRegressionSpark.py
 
-	// NUOVO
-	aws emr add-steps --cluster-id CLUSTER_ID --steps Type=spark,Name=TestJob,Args=[--deploy-mode,cluster,--master,yarn,--conf,spark.yarn.submit.waitAppCompletion=true,s3a://spectral-regression-spark-bucket/SpectralRegressionSpark.py,s3a://spectral-regression-spark-bucket/test.csv,s3a://spectral-regression-spark-bucket/output.txt],ActionOnFailure=CONTINUE
-	aws emr add-steps --cluster-id j-3PA970BL317JY --steps Type=spark,Name=TestJob,Args=[--deploy-mode,cluster,--master,yarn,--conf,spark.yarn.submit.waitAppCompletion=true,s3a://spectral-regression-spark-bucket/SpectralRegressionSpark.py],ActionOnFailure=CONTINUE
-
-	spark-submit --deploy-mode cluster --master yarn --conf spark.yarn.submit.waitAppCompletion=true s3://spectral-regression-spark-bucket/SpectralRegressionSpark.py
+	// lancia il programma se file presente in s3
 	spark-submit --deploy-mode cluster s3://spectral-regression-spark-bucket/SpectralRegressionSpark.py
 
-	spark-submit --deploy-mode cluster --master yarn --num-executors 2 --executor-cores 2 --conf spark.yarn.submit.waitAppCompletion=true SpectralRegressionSpark.py
+	
 
 	// file di log presenti qua:
 	cd /mnt/var/log/hadoop/steps/
@@ -38,6 +34,7 @@ ssh -i prima.pem hadoop@PUBLIC_DNS
 // distruggi il cluster ed i bucket S3
 terraform destroy --auto-approve
 
+// il bucket di log andrà eliminato a mano
 
 
 
@@ -51,12 +48,18 @@ terraform destroy --auto-approve
 
 
 
+// vecchio aws emr
+	// altro
+	aws emr add-steps --cluster-id CLUSTER_ID --steps Type=spark,Name=TestJob,Args=[--deploy-mode,cluster,--master,yarn,--conf,spark.yarn.submit.waitAppCompletion=true,s3a://spectral-regression-spark-bucket/SpectralRegressionSpark.py,s3a://spectral-regression-spark-bucket/test.csv,s3a://spectral-regression-spark-bucket/output.txt],ActionOnFailure=CONTINUE
+	aws emr add-steps --cluster-id j-3PA970BL317JY --steps Type=spark,Name=TestJob,Args=[--deploy-mode,cluster,--master,yarn,--conf,spark.yarn.submit.waitAppCompletion=true,s3a://spectral-regression-spark-bucket/SpectralRegressionSpark.py],ActionOnFailure=CONTINUE
 
+	spark-submit --deploy-mode cluster --master yarn --conf spark.yarn.submit.waitAppCompletion=true s3://spectral-regression-spark-bucket/SpectralRegressionSpark.py
+	
+	spark-submit --deploy-mode cluster --master yarn --num-executors 2 --executor-cores 2 --conf spark.yarn.submit.waitAppCompletion=true SpectralRegressionSpark.py
 
 
 
 // vecchio per istanza ec2 ed altro boh
-
 
 
 0 tab: locale

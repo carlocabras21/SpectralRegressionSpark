@@ -5,23 +5,12 @@ from pyspark.ml.tuning import CrossValidator, ParamGridBuilder
 from pyspark.sql.types import FloatType, StringType, StructType, DoubleType, StructField
 from pyspark import SparkContext, SparkConf, SQLContext
 
+print("\n\n\n *******\n\n\n")
+print(" BEGIN")
+print("\n\n\n *******\n\n\n")
 
-'''
-non so neanche se siano questi i problemi:
+# spark 1.6 configuration for EMR
 
-Capire perche' non riesco ad accedere ad S3.
-
-forse non ho fatto partire gli slave
-controllare le porte in entrata ed uscita dagli slave
-
-'''
-
-# sparkk 2.0+
-# from pyspark.sql import SparkSession
-
-# Create a Scala Spark Context.
-
-# spark 1.6 per EMR
 conf = SparkConf().setAppName("Spectral Regression in Spark")\
     .set("spark.shuffle.service.enabled", "false")\
     .set("spark.dynamicAllocation.enabled", "false")
@@ -30,16 +19,7 @@ sc = SparkContext(conf=conf)
 sc.setLogLevel("WARN")
 sqlContext = SQLContext(sc)
 
-# spark 2.0+ per locale
-# sc = SparkContext()
-# spark = SparkSession \
-#     .builder \
-#     .appName("Python Spark training model") \
-#     .config("spark.some.config.option", "some-value") \
-#     .getOrCreate()
-# spark.sparkContext.setLogLevel("ERROR")
-
-# build the data scheme in the csv files
+# build the data scheme used in the csv files
 schema = StructType([
     StructField("spectroFlux_u", DoubleType(), True),
     StructField("spectroFlux_g", DoubleType(), True),
@@ -49,54 +29,30 @@ schema = StructType([
     StructField("source_class",  StringType(), True),
     StructField("redshift",      DoubleType(), True)])
 
+# load CSV into RDD, remove header, split the lines and create DataFrame
 
-# read only one file
-# inputFile = "src/main/resources/spectral_data_class.csv"
-# inputFile = "test.csv"
-inputFile  = "s3://spectral-regression-spark-bucket/test.csv"
+# inputFile = "resources/spectral_data_class.csv"
+inputFile = "resources/test.csv"
+# inputFile  = "s3://spectral-regression-spark-bucket/test.csv"
 outputFile = "s3://spectral-regression-spark-bucket/output.txt"
-# df = spark.read.csv(inputFile, header=True, schema=schema)
-
-# df = sqlContext.read.format("com.databricks.spark.csv").option("header", "true").load(inputFile, schema=schema)
-
-print("\n\n\n*******\n\n\n")
 print(inputFile)
-print("\n\n\n*******\n\n\n")
 
-# f = open(outputFile,"w")
-# f.write("ciaoooo")
-# f.close()
+rdd = sc.textFile(inputFile)
 
-# with open(outputFile) as f:
-#     f.write("provaaa")
+header = rdd.first()
+data = rdd.filter(lambda line:  line != header) \
+          .map(lambda l: l.split(',')) \
+          .map(lambda e: (float(e[0]), float(e[1]), float(e[2]), float(e[3]), float(e[4]), e[5], float(e[6]) ))
+print("rdd data count:")
+print(data.count())
 
-# load CSV into RDD and transform it into a Dataframe
-rdd = sc.textFile(inputFile) #.map(lambda x: x.split(","))
-header = rdd.first() #extract header
-data = rdd.filter(lambda line:  line != header)   #filter out header
-# rdd.mapPartitionsWithIndex{ (idx, iter) => if (idx == 0) iter.drop(1) else iter }
-data_splitted = data.map(lambda l: l.split(','))
-data_mapped = data_splitted.map(lambda e: (float(e[0]), float(e[1]), float(e[2]), float(e[3]), float(e[4]), e[5], float(e[6]) ))
-print("data_mapped count:")
-print(data_mapped.count())
-# df = data.toDF(schema)
-# df = sqlContext.createDataFrame(data.map(lambda s: s.split(",")), schema)
-df = sqlContext.createDataFrame(data_mapped, schema)
+df = sqlContext.createDataFrame(data, schema)
 
 print("df schema:")
 df.printSchema()
 
-print("\n\n\n *******\n\n\n")
 print("df count:")
 print(df.count())
-print("\n\n\n *******\n\n\n")
-
-
-
-# with open(outputFile) as f:
-#     f.write(df.count())
-
-# sc.stop()
 
 
 # show min and max values of redshift
@@ -133,10 +89,13 @@ df3 = assembler.transform(df2) \
 print("df3 schema:")
 df3.printSchema()
 
+# split the data, train a regressor and make predictions
+
 trainingData, testData = df3.randomSplit([0.9, 0.1])
 print("trainingData count")
 print(trainingData.count())
 
+print("training...")
 dt = DecisionTreeRegressor(labelCol="redshift", featuresCol="features", maxDepth=4)
 paramGrid = ParamGridBuilder().build()
 evaluator = RegressionEvaluator(labelCol="redshift", predictionCol="prediction", metricName="rmse")
@@ -146,12 +105,16 @@ cvModel = cv.fit(trainingData)
 predictions = cvModel.transform(testData)
 
 rmse = evaluator.evaluate(predictions)
-print("\n\n\n*******\n\n\n")
-print("Root Mean Squared Error (RMSE) on test data = " + str(rmse))
-print("\n\n\n*******")
+print("...done.")
+s = "Root Mean Squared Error (RMSE) on test data = " + str(rmse)
+print(s)
+
+# with open(outputFile) as f:
+#     f.write(s)
+
 
 print("\n\n\n *******\n\n\n")
-print(" FINE PROGRAMMA")
+print(" END")
 print("\n\n\n *******\n\n\n")
 
 sc.stop()

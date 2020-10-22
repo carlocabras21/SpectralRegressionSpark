@@ -4,12 +4,19 @@ resource "aws_s3_bucket" "main-bucket" {
   bucket = "spectral-regression-spark-bucket" # assegnare un nome univoco GLOBALE alla risorsa
 }
 
-# upload dei dati
-resource "aws_s3_bucket_object" "data-upload" {
+# upload dei dati di test
+resource "aws_s3_bucket_object" "test-data-upload" {
   bucket = aws_s3_bucket.main-bucket.id
   key    = "test.csv" # nome che il file avrà dentro il bucket
-  source = "src/main/resources/test.csv"
+  source = "resources/test.csv"
 }
+
+# # upload dei dati veri e propri
+# resource "aws_s3_bucket_object" "test-data-upload" {
+#   bucket = aws_s3_bucket.main-bucket.id
+#   key    = "spectral_data_class.csv" # nome che il file avrà dentro il bucket
+#   source = "resources/spectral_data_class.csv"
+# }
 
 # upload dello script
 resource "aws_s3_bucket_object" "script-upload" {
