@@ -1,19 +1,43 @@
+'''
+InDepth: Parameter tuning for Decision Tree
+https://medium.com/@mohtedibf/indepth-parameter-tuning-for-decision-tree-6753118a03c3
+
+In Depth: Parameter tuning for Random Forest
+https://medium.com/all-things-ai/in-depth-parameter-tuning-for-random-forest-d67bb7e920d
+
+Regression Trees
+https://uc-r.github.io/regression_trees
+
+Testare i diversi tipi di regression presenti qua?
+https://spark.apache.org/docs/latest/ml-classification-regression.html
+
+
+
+
+
+'''
+
+import time
+from datetime import datetime
+
 from pyspark.ml.evaluation import RegressionEvaluator
-from pyspark.ml.feature import VectorAssembler
+from pyspark.ml.feature    import VectorAssembler
 from pyspark.ml.regression import DecisionTreeRegressor
-from pyspark.ml.tuning import CrossValidator, ParamGridBuilder
-from pyspark.sql.types import FloatType, StringType, StructType, DoubleType, StructField
-from pyspark import SparkContext, SparkConf, SQLContext
+from pyspark.ml.tuning     import CrossValidator, ParamGridBuilder
+from pyspark.sql.types     import FloatType, StringType, StructType, DoubleType, StructField
+from pyspark               import SparkContext, SparkConf, SQLContext
 
 print("\n\n\n *******\n\n\n")
 print(" BEGIN")
 print("\n\n\n *******\n\n\n")
 
+start = time.time()
+
 # spark 1.6 configuration for EMR
 
 conf = SparkConf().setAppName("Spectral Regression in Spark")\
-    .set("spark.shuffle.service.enabled", "false")\
-    .set("spark.dynamicAllocation.enabled", "false")
+                  .set("spark.shuffle.service.enabled", "false")\
+                  .set("spark.dynamicAllocation.enabled", "false")
 
 sc = SparkContext(conf=conf)
 sc.setLogLevel("WARN")
@@ -32,26 +56,25 @@ schema = StructType([
 # load CSV into RDD, remove header, split the lines and create DataFrame
 
 # inputFile = "resources/spectral_data_class.csv"
-inputFile = "resources/test.csv"
-# inputFile  = "s3://spectral-regression-spark-bucket/test.csv"
-outputFile = "s3://spectral-regression-spark-bucket/output.txt"
+# inputFile = "resources/test.csv"
+inputFile   = "s3a://spectral-regression-spark-bucket/test.csv"
 print(inputFile)
 
 rdd = sc.textFile(inputFile)
 
 header = rdd.first()
-data = rdd.filter(lambda line:  line != header) \
-          .map(lambda l: l.split(',')) \
-          .map(lambda e: (float(e[0]), float(e[1]), float(e[2]), float(e[3]), float(e[4]), e[5], float(e[6]) ))
-print("rdd data count:")
+data   = rdd.filter(lambda line:  line != header) \
+            .map(lambda l: l.split(',')) \
+            .map(lambda e: (float(e[0]), float(e[1]), float(e[2]), float(e[3]), float(e[4]), e[5], float(e[6]) ))
+print("\nrdd data count:")
 print(data.count())
 
 df = sqlContext.createDataFrame(data, schema)
 
-print("df schema:")
+print("\ndf schema:")
 df.printSchema()
 
-print("df count:")
+print("\ndf count:")
 print(df.count())
 
 
@@ -71,7 +94,7 @@ df2 = df.withColumn("u_g", df["spectroFlux_u"] - df["spectroFlux_g"]) \
         .drop("source_class")
 #         .limit(10000) # for testing
 
-print("df2 schema:")
+print("\ndf2 schema:")
 df2.printSchema()
 
 # keep the features in a single vector named "features"
@@ -81,10 +104,10 @@ assembler = VectorAssembler() \
 
 # remove old features, now df3 consists in "features" vector and "redshift" class-label
 df3 = assembler.transform(df2) \
-    .drop("u_g")\
-    .drop("g_r")\
-    .drop("r_i")\
-    .drop("i_z")\
+    .drop("u_g") \
+    .drop("g_r") \
+    .drop("r_i") \
+    .drop("i_z")
 
 print("df3 schema:")
 df3.printSchema()
@@ -95,23 +118,31 @@ trainingData, testData = df3.randomSplit([0.9, 0.1])
 print("trainingData count")
 print(trainingData.count())
 
-print("training...")
-dt = DecisionTreeRegressor(labelCol="redshift", featuresCol="features", maxDepth=4)
+print("\ntraining...")
+dt        = DecisionTreeRegressor(labelCol="redshift", featuresCol  ="features",   maxDepth=4)
 paramGrid = ParamGridBuilder().build()
-evaluator = RegressionEvaluator(labelCol="redshift", predictionCol="prediction", metricName="rmse")
+evaluator = RegressionEvaluator(  labelCol="redshift", predictionCol="prediction", metricName="rmse")
 
-cv = CrossValidator(estimator=dt, evaluator=evaluator, estimatorParamMaps=paramGrid, numFolds=3)
-cvModel = cv.fit(trainingData)
+cv          = CrossValidator(estimator=dt, evaluator=evaluator, estimatorParamMaps=paramGrid, numFolds=3)
+cvModel     = cv.fit(trainingData)
 predictions = cvModel.transform(testData)
 
 rmse = evaluator.evaluate(predictions)
-print("...done.")
-s = "Root Mean Squared Error (RMSE) on test data = " + str(rmse)
-print(s)
+print("...done.\n")
 
-# with open(outputFile) as f:
-#     f.write(s)
+# print results
 
+r = "Root Mean Squared Error (RMSE) on test data = " + str(rmse)
+print(r)
+
+end = time.time()
+t = "Time elapsed: " + str(end-start)
+print(t)
+
+# save results in S3, via rdd
+now = datetime.now().strftime("%d-%m-%Y_%H-%M-%S")
+results_rdd = sc.parallelize([r, t])
+results_rdd.coalesce(1).saveAsTextFile("s3a://spectral-regression-spark-bucket/results_" + now)
 
 print("\n\n\n *******\n\n\n")
 print(" END")

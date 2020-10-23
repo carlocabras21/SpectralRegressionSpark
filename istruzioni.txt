@@ -18,9 +18,9 @@ ssh -i prima.pem hadoop@PUBLIC_DNS
 	// lancia il programma se file presente in s3
 	spark-submit --deploy-mode cluster s3://spectral-regression-spark-bucket/SpectralRegressionSpark.py
 
-	
+	/mnt/yarn/usercache/hadoop/appcache/application_1603438472871_0013/container_1603438472871_0013_01_000001
 
-	// file di log presenti qua:
+	// file di log se step aggiunto da GUI presenti qua:
 	cd /mnt/var/log/hadoop/steps/
 
 	// visualizzarli con e.g.:

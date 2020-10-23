@@ -1,26 +1,3 @@
-
-# # define a security group that will allow anyone to connect through port 22.
-# # it will also forward all traffic without restriction
-# resource "aws_security_group" "ingress-all" {
-#   name = "allow-all-sg"
-#   description = "Allow inbound traffic from VPN"
-#   vpc_id = aws_vpc.main-VPC.id
-
-#   ingress {
-#     from_port = 0
-#     to_port = 0
-#     protocol = "-1"
-#     cidr_blocks = ["0.0.0.0/0"]
-#   }
-#   // Terraform removes the default rule
-#   egress {
-#     from_port = 0
-#     to_port = 0
-#     protocol = "-1"
-#     cidr_blocks = ["0.0.0.0/0"]
-#   }
-# }
-
 resource "aws_security_group" "master_security_group" {
   name        = "master_security_group"
   description = "Allow inbound traffic from VPN"
@@ -117,6 +94,7 @@ resource "aws_security_group" "slave_security_group" {
   name        = "slave_security_group"
   description = "Allow all internal traffic"
   vpc_id      = aws_vpc.main-VPC.id
+  
   revoke_rules_on_delete = true
  
   # Allow communication between nodes in the VPC

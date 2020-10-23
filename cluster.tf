@@ -28,7 +28,7 @@ provider "aws" {
   # questi dati vanno presi ogni volta da "Account Details" dentro vocareum
   access_key = var.access-key # values inside an external .tf file
   secret_key = var.secret-key
-  token = var.token
+  token      = var.token
 }
 
 
@@ -196,34 +196,35 @@ EOF
 }
 
 resource "aws_emr_cluster" "cluster" {
-  name = "emr-test-arn"
+  name          = "emr-test-arn"
   release_label = "emr-4.6.0"
-  applications = [
-    "Spark"]
+  applications  = ["Spark"]
 
-  log_uri = "s3://log-spectral-regression-spark-bucket"
+  log_uri      = "s3://log-spectral-regression-spark-bucket"
   service_role = aws_iam_role.iam_emr_service_role.arn
 
-  termination_protection = false
+  termination_protection            = false
   keep_job_flow_alive_when_no_steps = true
 
   ec2_attributes {
-    key_name      = var.key_name
+    key_name  = var.key_name
     subnet_id = aws_subnet.subnet-uno.id
-    # emr_managed_master_security_group = aws_security_group.ingress-all.id
-    # emr_managed_slave_security_group = aws_security_group.ingress-all.id
+    
     emr_managed_master_security_group = aws_security_group.master_security_group.id
-    emr_managed_slave_security_group = aws_security_group.slave_security_group.id
+    emr_managed_slave_security_group  = aws_security_group.slave_security_group.id
+    
     instance_profile = aws_iam_instance_profile.emr_profile.arn
 
   }
 
+  # istanza m per uso generale
   master_instance_group {
     instance_type = "m4.large"
   }
 
+  # istanza c ottimizzata per calcolo
   core_instance_group {
-    instance_type = "c4.large"
+    instance_type  = "c4.large"
     instance_count = 2
 
     ebs_config {
