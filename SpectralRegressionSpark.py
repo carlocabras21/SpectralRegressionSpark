@@ -16,24 +16,30 @@ https://spark.apache.org/docs/latest/ml-classification-regression.html
 
 
 '''
-
+import os
+import pwd
 import time
 from datetime import datetime
 
+from pyspark               import SparkContext, SparkConf, SQLContext
+from pyspark.sql.types     import FloatType, StringType, StructType, DoubleType, StructField
 from pyspark.ml.evaluation import RegressionEvaluator
 from pyspark.ml.feature    import VectorAssembler
 from pyspark.ml.regression import DecisionTreeRegressor
 from pyspark.ml.tuning     import CrossValidator, ParamGridBuilder
-from pyspark.sql.types     import FloatType, StringType, StructType, DoubleType, StructField
-from pyspark               import SparkContext, SparkConf, SQLContext
 
 print("\n\n\n *******\n\n\n")
 print(" BEGIN")
 print("\n\n\n *******\n\n\n")
 
+# timer starts here, I want to check whole performance of the script,
+# including Spark startup and data loading
 start = time.time()
 
-# spark 1.6 configuration for EMR
+
+# STARTUP
+
+# spark 1.6.1 configuration for EMR
 
 conf = SparkConf().setAppName("Spectral Regression in Spark")\
                   .set("spark.shuffle.service.enabled", "false")\
@@ -53,15 +59,25 @@ schema = StructType([
     StructField("source_class",  StringType(), True),
     StructField("redshift",      DoubleType(), True)])
 
-# load CSV into RDD, remove header, split the lines and create DataFrame
 
-# inputFile = "resources/spectral_data_class.csv"
-# inputFile = "resources/test.csv"
-inputFile   = "s3a://spectral-regression-spark-bucket/test.csv"
+# DATA LOADING
+
+# DA TESTARE
+# load data from S3 if we are in EMR, else load data locally
+test = True
+user = pwd.getpwuid(os.getuid()).pw_name
+
+path     = "s3a://spectral-regression-spark-bucket" if user == "hadoop" else "resources"
+fileName = "test.csv" if test else "spectral_data_class.csv"
+
+inputFile = path + "/" + fileName
+
 print(inputFile)
 
+# load CSV into RDD
 rdd = sc.textFile(inputFile)
 
+# remove header, split lines and map data into types required
 header = rdd.first()
 data   = rdd.filter(lambda line:  line != header) \
             .map(lambda l: l.split(',')) \
@@ -69,6 +85,7 @@ data   = rdd.filter(lambda line:  line != header) \
 print("\nrdd data count:")
 print(data.count())
 
+# create DataFrame from RDD and schema
 df = sqlContext.createDataFrame(data, schema)
 
 print("\ndf schema:")
@@ -102,7 +119,8 @@ assembler = VectorAssembler() \
     .setInputCols(["u_g", "g_r", "r_i", "i_z"]) \
     .setOutputCol("features")
 
-# remove old features, now df3 consists in "features" vector and "redshift" class-label
+# remove old features, now df3 consists in "features" vector and "redshift" class-label,
+# which is what we need for training
 df3 = assembler.transform(df2) \
     .drop("u_g") \
     .drop("g_r") \
@@ -112,37 +130,43 @@ df3 = assembler.transform(df2) \
 print("df3 schema:")
 df3.printSchema()
 
-# split the data, train a regressor and make predictions
 
+# TRAINING
+
+# split the data
 trainingData, testData = df3.randomSplit([0.9, 0.1])
 print("trainingData count")
 print(trainingData.count())
 
-print("\ntraining...")
+# regressor setup
 dt        = DecisionTreeRegressor(labelCol="redshift", featuresCol  ="features",   maxDepth=4)
 paramGrid = ParamGridBuilder().build()
 evaluator = RegressionEvaluator(  labelCol="redshift", predictionCol="prediction", metricName="rmse")
 
+# fit and make predictions
 cv          = CrossValidator(estimator=dt, evaluator=evaluator, estimatorParamMaps=paramGrid, numFolds=3)
+print("\nTraining...")
 cvModel     = cv.fit(trainingData)
+print("...done.\n")
+print("\nEvaluating predictions...\n")
 predictions = cvModel.transform(testData)
 
+# compute error
 rmse = evaluator.evaluate(predictions)
-print("...done.\n")
+end = time.time()
 
-# print results
+# PRINT RESULTS
 
 r = "Root Mean Squared Error (RMSE) on test data = " + str(rmse)
-print(r)
-
-end = time.time()
 t = "Time elapsed: " + str(end-start)
-print(t)
+print(r + "\n\n" + t)
 
-# save results in S3, via rdd
-now = datetime.now().strftime("%d-%m-%Y_%H-%M-%S")
-results_rdd = sc.parallelize([r, t])
-results_rdd.coalesce(1).saveAsTextFile("s3a://spectral-regression-spark-bucket/results_" + now)
+# save results in S3 in a folder called "results_<date-time>".
+# data will be in file PART-0000
+if user == "hadoop":
+    now = datetime.now().strftime("%d-%m-%Y_%H-%M-%S")
+    results_rdd = sc.parallelize([r, t])
+    results_rdd.coalesce(1).saveAsTextFile("s3a://spectral-regression-spark-bucket/results_" + now)
 
 print("\n\n\n *******\n\n\n")
 print(" END")
