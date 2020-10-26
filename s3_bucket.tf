@@ -11,8 +11,9 @@ resource "aws_s3_bucket_object" "test-data-upload" {
   source = "resources/test.csv"
 }
 
+
 # # upload dei dati veri e propri
-# resource "aws_s3_bucket_object" "test-data-upload" {
+# resource "aws_s3_bucket_object" "data-upload" {
 #   bucket = aws_s3_bucket.main-bucket.id
 #   key    = "spectral_data_class.csv" # nome che il file avrà dentro il bucket
 #   source = "resources/spectral_data_class.csv"
@@ -23,13 +24,6 @@ resource "aws_s3_bucket_object" "script-upload" {
   bucket = aws_s3_bucket.main-bucket.id
   key    = "SpectralRegressionSpark.py" # nome che il file avrà dentro il bucket
   source = "SpectralRegressionSpark.py"
-}
-
-# upload del file di output
-resource "aws_s3_bucket_object" "output-upload" {
-  bucket = aws_s3_bucket.main-bucket.id
-  key    = "output.txt" # nome che il file avrà dentro il bucket
-  source = "output.txt"
 }
 
 # endpoint per la VPC

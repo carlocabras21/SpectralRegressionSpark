@@ -196,9 +196,9 @@ EOF
 }
 
 resource "aws_emr_cluster" "cluster" {
-  name          = "emr-test-arn"
-  release_label = "emr-4.6.0"
-  applications  = ["Spark"]
+  name          = "spectral-regression-cluster"
+  release_label = "emr-5.21.2"
+  applications  = ["Spark"] 
 
   log_uri      = "s3://log-spectral-regression-spark-bucket"
   service_role = aws_iam_role.iam_emr_service_role.arn
@@ -232,24 +232,14 @@ resource "aws_emr_cluster" "cluster" {
       type                 = "gp2"
       volumes_per_instance = 1
     }
-
   }
-
 }
-
-// non funziona e non ho neanche capito a cosa serva
-//resource "aws_emr_instance_group" "task" {
-//  cluster_id     = aws_emr_cluster.cluster.id
-//  instance_count = 1
-//  instance_type  = "c4.large"
-//  name           = "my little instance group"
-//}
 
 
 
 # print the public dns in order to connect it via ssh
 # ssh -i "<key_name>.pem" <username>@<public_dns>
-# where <username> = hadoop
+# in this case <username> = hadoop
 output "public_dns" {
   description = "The public ip for ssh access"
   value       = aws_emr_cluster.cluster.master_public_dns
