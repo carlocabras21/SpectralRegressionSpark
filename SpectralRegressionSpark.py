@@ -17,17 +17,20 @@ from pyspark.ml.tuning     import CrossValidator, ParamGridBuilder
 # SCRIPT SETUP
 
 # flags
-test                = True  # if you want to use data from test.csv, a small portion of the dataset
-write_results_in_S3 = False # if you want to write results in an external file in S3
+test                = True  # to use data from test.csv, a small portion of the dataset
+write_results_in_S3 = False # to write results in an external file in S3
 
 # uncomment what type of regression you want to do (only one)
 regression_type = "linear"
 # regression_type = "decision-tree"
 # regression_type = "random-forest"
 
-# check if the user is "hadoop", in this case we are in EMR cluster and not locally
-in_emr = pwd.getpwuid(os.getuid()).pw_name == "hadoop"
-
+# check if the user is "hadoop" or "yarn", in this case we are in EMR cluster and not locally;
+# unless your username is one of those...
+pw_name = pwd.getpwuid(os.getuid()).pw_name
+in_emr  = pw_name == "hadoop" or pw_name == "yarn"
+# user "hadoop" in deploy-mode client (which is the default mode)
+# user "yarn"   in deploy-mode cluster 
 
 # big message because I want to find my prints within spark/yarn logs
 print("\n\n\n *******\n\n\n")
@@ -84,7 +87,6 @@ df_diff = df.withColumn("u_g", df["spectroFlux_u"] - df["spectroFlux_g"]) \
             .drop("spectroFlux_i") \
             .drop("spectroFlux_z") \
             .drop("source_class")
-#         .limit(10000) # for testing
 
 print("\nSchema of DataFrame with differences between spectral classes:")
 df_diff.printSchema()

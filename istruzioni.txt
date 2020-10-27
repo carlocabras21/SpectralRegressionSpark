@@ -34,7 +34,7 @@ ssh -i prima.pem hadoop@PUBLIC_DNS
 // distruggi il cluster ed i bucket S3
 terraform destroy --auto-approve
 
-// il bucket di log andrà eliminato a mano
+// i bucket vanno prima vuotati manualmente
 
 
 
