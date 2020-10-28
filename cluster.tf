@@ -225,7 +225,7 @@ resource "aws_emr_cluster" "cluster" {
   # istanza c ottimizzata per calcolo
   core_instance_group {
     instance_type  = "c4.large"
-    instance_count = 2
+    instance_count = 1
 
     ebs_config {
       size                 = "40"

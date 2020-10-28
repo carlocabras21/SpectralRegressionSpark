@@ -6,7 +6,7 @@
 terraform apply --auto-approve
 
 // copia il file python dentro il cluster
-scp -i prima.pem SpectralRegressionSpark.py hadoop@PUBLIC_DNS:~/
+scp -i prima.pem SpectralRegressionSpark.py hadoop@<public_dns>:~/
 
 
 // connettiti al cluster
@@ -29,7 +29,10 @@ ssh -i prima.pem hadoop@PUBLIC_DNS
 	// per leggere il stdout dell'applicazione
 	// <log-bucket>/<id-cluster>/containers/<id-applicazione>/ <prima cartella container> / stdout.gz 
 	// oppure per leggere tutto il log (tra cui l'output)
-	yarn logs --applicationId <your applicationId> > myfile.txt
+	yarn logs --applicationId <your applicationId> > log.txt
+
+// copiare in locale il file di log
+scp -i prima.pem hadoop@<public_dns>:~/log.txt <local_destination_path>
 
 // distruggi il cluster ed i bucket S3
 terraform destroy --auto-approve

@@ -18,7 +18,7 @@ from pyspark.ml.tuning     import CrossValidator, ParamGridBuilder
 
 # flags
 test                = True  # to use data from test.csv, a small portion of the dataset
-write_results_in_S3 = False # to write results in an external file in S3
+write_results_in_S3 = False  # to write results in an external file in S3
 
 # uncomment what type of regression you want to do (only one)
 regression_type = "linear"
@@ -129,7 +129,7 @@ elif regression_type == "decision-tree":
     dt        = DecisionTreeRegressor(labelCol="redshift", featuresCol  ="features",   maxDepth=10)
     paramGrid = ParamGridBuilder().build()
     evaluator = RegressionEvaluator(labelCol="redshift", predictionCol="prediction", metricName="rmse")
-    cv        = CrossValidator(estimator=dt, evaluator=evaluator, estimatorParamMaps=paramGrid, numFolds=5)
+    cv        = CrossValidator(estimator=dt, evaluator=evaluator, estimatorParamMaps=paramGrid, numFolds=10)
 
     # fit
     print("\nTraining Decision Tree Regressor on training data...")
@@ -175,7 +175,7 @@ print("\n" + r + "\n\n" + t)
 if write_results_in_S3 and in_emr:
     now = datetime.now().strftime("%d%m%y-%H%M%S") # e.g. 26/10/2020 17:01:52 -> 151020-180152
     results_rdd = sc.parallelize([r, t])
-    results_rdd.coalesce(1).saveAsTextFile("s3a://spectral-regression-spark-bucket/results_" + regression_type + "_" + now)
+    results_rdd.coalesce(1).saveAsTextFile("s3a://spectral-regression-spark-bucket/results_1xc4large_" + regression_type + "_" + now)
 
 print("\n\n\n *******\n\n\n")
 print(" END")
