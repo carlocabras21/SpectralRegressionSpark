@@ -1,0 +1,7 @@
+Root Mean Squared Error (RMSE) on test data = 0.677898045222
+
+Root Mean Squared Error (RMSE) on STAR test data = 0.577501185741
+Root Mean Squared Error (RMSE) on GALAXY test data = 0.256110340146
+Root Mean Squared Error (RMSE) on QSO test data = 1.28082070345
+
+Time elapsed: 618.0138309
