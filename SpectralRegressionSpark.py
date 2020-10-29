@@ -20,19 +20,26 @@ from pyspark.ml.tuning     import CrossValidator, ParamGridBuilder
 test                = False  # to use data from test.csv, a small portion of the dataset
 write_results_in_S3 = True  # to write results in an external file in S3
 
-filtered_data_testing = False # use only 2 of 3 source classes
+
+two_classes_dataset = True # use only 2 of 3 source classes
 # if the above is True, uncomment what type of filter you want to do (only one):
-filter_type = "star-galaxy"
+# filter_type = "star-galaxy"
 # filter_type = "star-qso"
-# filter_type = "galaxy-qso"
+filter_type = "galaxy-qso"
 
 # uncomment what type of regression you want to do (only one)
-regression_type = "linear"
+# regression_type = "linear"
 # regression_type = "decision-tree"
-# regression_type = "random-forest"
+regression_type = "random-forest"
 
 
+test_on_single_classes = True # computer RMSE in a test set containing only one source class
 
+
+# write here what kind of slaves you are using
+slaves = "4xc4large"
+# it will be used in the results folder's name in S3. This is NOT in any way connected to Terraform
+# and EMR creation. 
 
 
 
@@ -62,7 +69,7 @@ spark.sparkContext.setLogLevel("WARN")
 # -----------------------------------------------------------------------------------------------------------
 # DATA LOADING
 
-# set the right path 
+# set the right path for files
 path     = "s3://spectral-regression-spark-bucket" if in_emr else "resources"
 fileName = "test.csv" if test else "spectral_data_class.csv"
 
@@ -114,15 +121,19 @@ df_features = assembler.transform(df_diff) \
 print("\nSchema of DataFrame without old columns:")
 df_features.printSchema()
 
-if filtered_data_testing:
+# create a dataframe with data from two of the three classes
+if two_classes_dataset:
     if   filter_type == "star-galaxy":
         df_ready = df_features.filter(df.source_class != "QSO").drop("source_class")
+        source_classes = ["STAR", "GALAXY"]
 
     elif filter_type == "star-qso":
         df_ready = df_features.filter(df.source_class != "GALAXY").drop("source_class")
+        source_classes = ["STAR", "QSO"]
 
     elif filter_type == "galaxy-qso":
         df_ready = df_features.filter(df.source_class != "STAR").drop("source_class")
+        source_classes = ["GALAXY", "QSO"]
 
     else:
         print("ERROR\nWrong filter_type string.")
@@ -131,7 +142,8 @@ if filtered_data_testing:
         sc.stop()
         sys.exit()
 else:
-    df_ready = df_features#.drop("source_class")
+    df_ready = df_features.drop("source_class")
+    source_classes = ["STAR", "GALAXY", "QSO"]
 
 print("\nSchema of DataFrame ready for regression models:")
 df_ready.printSchema()
@@ -140,7 +152,7 @@ df_ready.printSchema()
 # TRAINING
 
 
-# split the data
+# split the data: 90% for training, 10% for test
 training_data, test_data = df_ready.randomSplit([0.9, 0.1])
 
 
@@ -191,14 +203,26 @@ predictions = model.transform(test_data)
 
 # compute error
 rmse = evaluator.evaluate(predictions)
+r = "Root Mean Squared Error (RMSE) on test data = " + str(rmse) + "\n\n"
 
 end = time.time()
+t = "Time elapsed: " + str(end-start)
+
+# compute error in a test set composed only with data from one single class (star, galaxy, qso)
+if test_on_single_classes:
+    for source_class in source_classes:
+        filtered_test_data = test_data.filter(df.source_class == source_class)
+        print("\nEvaluating model on " + source_class + " test data...\n")
+        predictions = model.transform(filtered_test_data)
+
+        # compute error
+        rmse = evaluator.evaluate(predictions)
+
+        r += "Root Mean Squared Error (RMSE) on " + source_class + " test data = " + str(rmse) + "\n"
 
 # -----------------------------------------------------------------------------------------------------------
 # PRINT RESULTS
 
-r = "Root Mean Squared Error (RMSE) on test data = " + str(rmse)
-t = "Time elapsed: " + str(end-start)
 print("\n" + r + "\n\n" + t)
 
 # save results in S3 in a folder called "results_<regression-type>_<date-time>".
@@ -208,8 +232,8 @@ if write_results_in_S3 and in_emr:
     results_rdd = sc.parallelize([r, t])
 
     # make the S3 folder name
-    s3_f_name = "s3a://spectral-regression-spark-bucket/results_4xm4large_" + regression_type + "_" + now
-    if filtered_data_testing:
+    s3_f_name = "s3a://spectral-regression-spark-bucket/results_" + slaves + "_" + regression_type + "_" + now
+    if two_classes_dataset:
         s3_f_name = s3_f_name + "_" + filter_type
     results_rdd.coalesce(1).saveAsTextFile(s3_f_name)
 
