@@ -21,16 +21,16 @@ test                = False  # to use data from test.csv, a small portion of the
 write_results_in_S3 = True  # to write results in an external file in S3
 
 
-two_classes_dataset = True # use only 2 of 3 source classes
+two_classes_dataset = False # use only 2 of 3 source classes
 # if the above is True, uncomment what type of filter you want to do (only one):
-# filter_type = "star-galaxy"
+filter_type = "star-galaxy"
 # filter_type = "star-qso"
-filter_type = "galaxy-qso"
+# filter_type = "galaxy-qso"
 
 # uncomment what type of regression you want to do (only one)
 # regression_type = "linear"
-# regression_type = "decision-tree"
-regression_type = "random-forest"
+regression_type = "decision-tree"
+# regression_type = "random-forest"
 
 
 test_on_single_classes = True # computer RMSE in a test set containing only one source class
@@ -39,7 +39,7 @@ test_on_single_classes = True # computer RMSE in a test set containing only one 
 # write here what kind of slaves you are using
 slaves = "4xc4large"
 # it will be used in the results folder's name in S3. This is NOT in any way connected to Terraform
-# and EMR creation. 
+# and EMR creation. You need to write this information to get a correct name in S3.
 
 
 
