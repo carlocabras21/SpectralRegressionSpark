@@ -12,19 +12,11 @@ scp -i prima.pem SpectralRegressionSpark.py hadoop@<public_dns>:~/
 // connettiti al cluster
 ssh -i prima.pem hadoop@PUBLIC_DNS
 
-    // lancia il programma se file inviato tramite scp
-    spark-submit --deploy-mode cluster SpectralRegressionSpark.py
+	// lancia il programma se file inviato tramite scp
+	spark-submit --deploy-mode cluster SpectralRegressionSpark.py
 
 	// lancia il programma se file presente in s3
 	spark-submit --deploy-mode cluster s3://spectral-regression-spark-bucket/SpectralRegressionSpark.py
-
-	/mnt/yarn/usercache/hadoop/appcache/application_1603438472871_0013/container_1603438472871_0013_01_000001
-
-	// file di log se step aggiunto da GUI presenti qua:
-	cd /mnt/var/log/hadoop/steps/
-
-	// visualizzarli con e.g.:
-	less controller
 
 	// per leggere il stdout dell'applicazione
 	// <log-bucket>/<id-cluster>/containers/<id-applicazione>/ <prima cartella container> / stdout.gz 
@@ -39,72 +31,5 @@ terraform destroy --auto-approve
 
 // i bucket vanno prima vuotati manualmente
 
-
-
-
-
-
-
-
-
-
-
-
-
-// vecchio aws emr
-	// altro
-	aws emr add-steps --cluster-id CLUSTER_ID --steps Type=spark,Name=TestJob,Args=[--deploy-mode,cluster,--master,yarn,--conf,spark.yarn.submit.waitAppCompletion=true,s3a://spectral-regression-spark-bucket/SpectralRegressionSpark.py,s3a://spectral-regression-spark-bucket/test.csv,s3a://spectral-regression-spark-bucket/output.txt],ActionOnFailure=CONTINUE
-	aws emr add-steps --cluster-id j-3PA970BL317JY --steps Type=spark,Name=TestJob,Args=[--deploy-mode,cluster,--master,yarn,--conf,spark.yarn.submit.waitAppCompletion=true,s3a://spectral-regression-spark-bucket/SpectralRegressionSpark.py],ActionOnFailure=CONTINUE
-
-	spark-submit --deploy-mode cluster --master yarn --conf spark.yarn.submit.waitAppCompletion=true s3://spectral-regression-spark-bucket/SpectralRegressionSpark.py
-	
-	spark-submit --deploy-mode cluster --master yarn --num-executors 2 --executor-cores 2 --conf spark.yarn.submit.waitAppCompletion=true SpectralRegressionSpark.py
-
-
-
-// vecchio per istanza ec2 ed altro boh
-
-
-0 tab: locale
-1 tab: remoto
-
----------------------------------
-Dalla cartella SparkRegressionScala locale del progetto
-
-// creare l'istanza con terraform
-terraform apply --auto-approve
-
-// connettersi al cluster:
-ssh -i prima.pem hadoop@<public_dns>
-
-	# creazione cartelle di lavoro
-	mkdir -p SparkRegressionScala/src/main/{scala,resources}
-	
-	# tornare in locale
-	
-
-// copia file da locale a remoto
-
-# per ora no // scp -i prima.pem install.sh hadoop@ec2-54-205-86-91.compute-1.amazonaws.com:/home/ubuntu
-
-scp -i prima.pem build.sbt hadoop@ec2-54-205-86-91.compute-1.amazonaws.com:~/SparkRegressionScala
-scp -i prima.pem src/main/scala/SpectralRegressionSpark.scala hadoop@ec2-54-205-86-91.compute-1.amazonaws.com:~/SparkRegressionScala/src/main/scala
-scp -i prima.pem src/main/resources/test.csv hadoop@ec2-54-205-86-91.compute-1.amazonaws.com:~/SparkRegressionScala/src/main/resources
-
-// connettersi all'istanza:
-ssh -i prima.pem ubuntu@eec2-54-205-86-91.compute-1.amazonaws.com
-
-	
-	// installazione programmi
-	chmod 777 install.sh
-	./install.sh
-	
-	// creazione jar
-	cd SparkRegressionScala
-	sbt package
-	spark-submit target/scala-2.12/sparkregressionscala_2.12-1.0.jar
-
-// distruzione istanza
-terraform destroy --auto-approve
 
 
