@@ -18,9 +18,10 @@ ssh -i prima.pem hadoop@PUBLIC_DNS
 	// lancia il programma se file presente in s3
 	spark-submit --deploy-mode cluster s3://spectral-regression-spark-bucket/SpectralRegressionSpark.py
 
-	// per leggere il stdout dell'applicazione
+	// per leggere il stdout dell'applicazione su S3
 	// <log-bucket>/<id-cluster>/containers/<id-applicazione>/ <prima cartella container> / stdout.gz 
-	// oppure per leggere tutto il log (tra cui l'output)
+	
+	// oppure per leggere tutto il log (tra cui l'output) in locale
 	yarn logs --applicationId <your applicationId> > log.txt
 
 // copiare in locale il file di log
