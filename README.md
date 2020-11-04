@@ -78,12 +78,24 @@ Inviare lo script via SSH al cluster tramite il comando `scp`:
 
 `scp -i chiave.pem SpectralRegressionSpark.py hadoop@<public-dns>:∼/`
 
-Connettersi nuovamente tramite SSH
+Connettersi nuovamente tramite SSH:
+
 `ssh -i chiave.pem hadoop@<public-dns>`
 
-Lanciare lo script con
+Lanciare lo script con:
+
 `spark-submit --deploy-mode cluster SpectralRegressionSpark.py`
 
 Attendere che lo script finisca.
 
 I risultati relativi a RMSE e tempi di calcolo si troveranno nella cartella `S3/spectral-regression-spark-bucket/results_2xm4large_linear_<date-time>` all'interno del file `PART-00000`.
+
+** Lanciare lo script nuovamente impostando  `regression_type = "decision-tree"` **
+
+** Lanciare lo script nuovamente impostando  `regression_type = "random-forest"` **
+
+## In generale
+
+Ripetere i test precedenti creando cluster con 4 e 8 istanze m4.large, poi nuovamente con 2, 4 e 8 istanze c4.large
+
+
