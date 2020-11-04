@@ -21,7 +21,7 @@ FROM SpecObj
 e lanciarla cliccando sul pulsante "Submit" presente sulla destra.
 Quando la query passerà a "Finished" possiamo cliccare su "MyDB" dove troviamo la tabella `spectral_data_class`, clicchiamoci sopra.
 
-Clicchiamo su "Download", selezioniamo "Comma Separated Values" dal menu a tendina indicante il formato del file, e premiamo "Go". Quando il file sarà pronto ci sarà il pulsante "Download", salviamo il file all'interno della cartella /resources.
+Clicchiamo su "Download", selezioniamo "Comma Separated Values" dal menu a tendina indicante il formato del file, e premiamo "Go". Quando il file sarà pronto ci sarà il pulsante "Download", salviamo il file all'interno della cartella `/resources`.
 
 ### AWS e Terraform
 Installare aws-cli https://docs.aws.amazon.com/cli/latest/userguide/install-cliv2-linux.html
@@ -30,22 +30,22 @@ Installare Terraform https://learn.hashicorp.com/tutorials/terraform/install-cli
 
 Creare un account su AWS Edcuate https://aws.amazon.com/it/education/awseducate/
 
-Dopo  aver effettuato il login, cliccare in alto a destra su "AWS Account", poi nel bottone centrale "AWS Edcuate Starter Account". Ci troviamo davanti la pagina di Vocareum da cui possiamo controllare quanti crediti ci rimangono ed accedere ad AWS.
+Dopo  aver effettuato il login su AWS Educate, cliccare in alto a destra su "AWS Account", poi nel bottone centrale "AWS Edcuate Starter Account". Ci troviamo davanti la pagina di Vocareum da cui possiamo controllare quanti crediti ci rimangono ed accedere ad AWS.
 
 Accedere ad AWS tramite "AWS Console"
 
 Da "Servizi" in alto a sinistra, andare su "EC2". Nella sezione "Risorse" al centro della pagina, clicchiamo quindi su "Coppie di chiavi", poi su "Crea una coppia di chiavi". Inseriamo il nome, ad esempio "chiave", scegliamo come formato "pem" e clicchiamo su "Crea una coppia di chiavi". Salviamo il file `chiave.pem` all'interno della cartella principale del progetto.
 
 ### Credenziali
-Dalla pagina Vocareum, clicchiamo su "Account Details". Sotto la voce "AWS CLI" clicchiamo il pulsante "Show". Copiamo le credenziali nel file `access_variables.tf`
+Dalla pagina Vocareum, clicchiamo su "Account Details". Sotto la voce "AWS CLI" clicchiamo il pulsante "Show". Copiamo ed incolliamo le credenziali nel file `access_variables.tf`. 
 
-Creare il cluster lanciando `terraform apply --auto-approve`
+Il valore di `aws_access_key` dentro Vocareum assegnarlo al campo `default` di `access-key` in `access_variables.tf`, come stringa.
 
-Verificare che tutto sia avvenuto correttamente connettendosi via SSH con
+Il valore di `aws_secret_access` dentro Vocareum assegnarlo al campo `default` di `secret-key` in `access_variables.tf`, come stringa.
 
-`ssh -i chiave.pem hadoop@<public-dns>` dove `<public-dns>` è l'indirizzo che terraform ha restituito come output.
+Il valore di `aws_session_token` dentro Vocareum assegnarlo al campo `default` di `token`  in `access_variables.tf`, come stringa.
 
-Una volta connessi, tornare in locale premendo `Ctrl + D`.
+
 
 ## Esecuzione con istanze m4
 
@@ -54,6 +54,14 @@ In `cluster.tf`:
 
 `212. instance_type  = "m4.large"`  
 `213. instance_count = 2`.  
+
+Da un terminale aperto nella cartella del progetto, creare il cluster lanciando `terraform apply --auto-approve`
+
+Verificare che tutto sia avvenuto correttamente connettendosi via SSH con
+
+`ssh -i chiave.pem hadoop@<public-dns>` dove `<public-dns>` è l'indirizzo che terraform ha restituito come output.
+
+Una volta connessi, tornare in locale premendo `Ctrl + D`.
 
 ### Impostazione script
 In `SpectralRegressionSpark.py`, impostare:
