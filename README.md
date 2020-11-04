@@ -93,9 +93,9 @@ I risultati relativi a RMSE e tempi di calcolo si troveranno nella cartella `S3/
 
 **Lanciare lo script nuovamente impostando  `regression_type = "random-forest"`**
 
-## In generale
+## Esecuzione con altre istanze
 
-Ripetere i test precedenti creando cluster con 4 e 8 istanze `m4.large`, poi nuovamente con 2, 4 e 8 istanze `c4.large`.
+Ripetere i tre test precedenti (`regression_type = "linear"`, `regression_type = "decision-tree"`, `regression_type = "random-forest"`) creando cluster con 4 e 8 istanze `m4.large`, poi nuovamente con 2, 4 e 8 istanze `c4.large`.
 
 Ogni volta che si cambia tipo di cluster, impostare dentro `SpectralRegressionSpark.py` alla riga 40 `slaves = ...` il tipo di configurazione, ad esempio se si usano 4 istanze `c4.large`, scrivere `slaves = "4xc4.large"`.
 
@@ -124,4 +124,4 @@ Dentro `SpectralRegressionSpark.py` impostare:
 
 **Lanciare lo script nuovamente cambiando il tipo `regression_type`**
 
-**Lanciare lo script nuovamente tutti gli script cambiando `filter_type`**
+**Cambiare `filter_type` e lanciare gli script eseguendo tutti e tre i `regression_type`**
