@@ -19,7 +19,7 @@ FROM SpecObj
 ```
 
 e lanciarla cliccando sul pulsante "Submit" presente sulla destra.
-Quando la query passerà a "Finished" possiamo cliccare su "MyDB" dove troviamo la tabella spectral_data_class, clicchiamoci sopra.
+Quando la query passerà a "Finished" possiamo cliccare su "MyDB" dove troviamo la tabella `spectral_data_class`, clicchiamoci sopra.
 
 Clicchiamo su "Download", selezioniamo "Comma Separated Values" dal menu a tendina indicante il formato del file, e premiamo "Go". Quando il file sarà pronto ci sarà il pulsante "Download", salviamo il file all'interno della cartella /resources.
 
@@ -33,7 +33,7 @@ Dopo  aver effettuato il login, cliccare in alto a destra su "AWS Account", poi 
 
 Accedere ad AWS tramite "AWS Console"
 
-Da "Servizi" in alto a sinistra, andare su "EC2". Nella sezione "Risorse" al centro della pagina, clicchiamo quindi su "Coppie di chiavi", poi su "Crea una coppia di chiavi". Inseriamo il nome, ad esempio "chiave", scegliamo come formato "pem" e clicchiamo su "Crea una coppia di chiavi". Salviamo il file chiave.pem all'interno della cartella principale del progetto.
+Da "Servizi" in alto a sinistra, andare su "EC2". Nella sezione "Risorse" al centro della pagina, clicchiamo quindi su "Coppie di chiavi", poi su "Crea una coppia di chiavi". Inseriamo il nome, ad esempio "chiave", scegliamo come formato "pem" e clicchiamo su "Crea una coppia di chiavi". Salviamo il file `chiave.pem` all'interno della cartella principale del progetto.
 
 ### Credenziali
 Dalla pagina Vocareum, clicchiamo su "Account Details". Sotto la voce "AWS CLI" clicchiamo il pulsante "Show". Copiamo le credenziali nel file access_variables.tf
@@ -43,18 +43,18 @@ Dalla pagina Vocareum, clicchiamo su "Account Details". Sotto la voce "AWS CLI" 
 ## Esecuzione con istanze m4
 
 ### Impostazione cluster
-In cluster.tf, riga 212, impostare instance_type = "m4.large". Riga 213, instance_count = 2.
+In `cluster.tf`, riga 212, impostare `instance_type = "m4.large"`. Riga 213, `instance_count = 2`.
 
 ### Impostazione script
-In SpectralRegressionSpark.py, impostare:
-20. test                = False  # to use data from test.csv, a small portion of the dataset
-21. write_results_in_S3 = True
+In `SpectralRegressionSpark.py`, impostare:
+20. `test                = False`  
+21. `write_results_in_S3 = True`
 
-24. two_classes_dataset = False
+24. `two_classes_dataset = False`
 
-31. regression_type = "linear"
-32. <commentare>
-33. <commentare>    
+31. `regression_type = "linear"`
+32. `# regression_type = "decision-tree"`
+33. `# regression_type = "random-forest"`  
 
-40. slaves = "2xm4large"
+40. `slaves = "2xm4large"`
 
