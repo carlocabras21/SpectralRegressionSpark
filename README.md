@@ -1,8 +1,8 @@
-# Photometric Redshift Regression using EMR clusters created via Terraform
+# Calcolo redshift fotometrico su diversi cluster EMR di AWS
 
 ## Tutorial
 
-Scaricare la cartella per intero.
+Innanzitutto scaricare la cartella per intero.
 
 ### Dataset
 Andare su http://skyserver.sdss.org/CasJobs/SubmitJob.aspx ed effettuare il login, eventualmente creando un account nel caso non se ne fosse
@@ -125,3 +125,7 @@ Dentro `SpectralRegressionSpark.py` impostare:
 **Lanciare lo script nuovamente cambiando il tipo `regression_type`**
 
 **Cambiare `filter_type` e lanciare gli script eseguendo tutti e tre i `regression_type`**
+
+## Risultati
+
+I risultati si troveranno all'interno della cartella `results`, suddivisi per categorie di test.
