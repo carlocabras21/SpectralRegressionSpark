@@ -96,6 +96,33 @@ I risultati relativi a RMSE e tempi di calcolo si troveranno nella cartella `S3/
 
 ## In generale
 
-Ripetere i test precedenti creando cluster con 4 e 8 istanze m4.large, poi nuovamente con 2, 4 e 8 istanze c4.large
+Ripetere i test precedenti creando cluster con 4 e 8 istanze `m4.large`, poi nuovamente con 2, 4 e 8 istanze `c4.large`.
+
+Ogni volta che si cambia tipo di cluster, impostare dentro `SpectralRegressionSpark.py` alla riga 40 `slaves = ...` il tipo di configurazione, ad esempio se si usano 4 istanze `c4.large`, scrivere `slaves = "4xc4.large"`.
 
 
+## Esecuzione su due sole classi del dataset
+
+Creare un cluster con 4 istanze `c4.large`.
+
+Dentro `SpectralRegressionSpark.py` impostare:
+
+20. `test                = False`  
+21. `write_results_in_S3 = True`
+
+24. `two_classes_dataset = False`
+26. `filter_type = "star-galaxy"`
+27. `# filter_type = "star-qso"`
+28. `# filter_type = "galaxy-qso"`
+
+31. `regression_type = "linear"`
+32. `# regression_type = "decision-tree"`
+33. `# regression_type = "random-forest"` 
+
+36. `test_on_single_classes = True`
+
+40. `slaves = "4xc4large"`
+
+**Lanciare lo script nuovamente cambiando il tipo `regression_type`**
+
+**Lanciare lo script nuovamente tutti gli script cambiando `filter_type`**
