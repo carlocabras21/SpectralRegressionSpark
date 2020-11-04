@@ -110,7 +110,7 @@ Dentro `SpectralRegressionSpark.py` impostare:
 20. `test                = False`  
 21. `write_results_in_S3 = True`
 
-24. `two_classes_dataset = False`
+24. `two_classes_dataset = True`
 26. `filter_type = "star-galaxy"`
 27. `# filter_type = "star-qso"`
 28. `# filter_type = "galaxy-qso"`
