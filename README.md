@@ -2,7 +2,7 @@
 
 ## Tutorial
 
-Innanzitutto scaricare la cartella per intero.
+Innanzitutto scaricare la cartella per intero. La cartella `results` contiene i risultati dei miei test e non serve ai fini dell'esecuzione del progetto.
 
 ### Dataset
 Andare su http://skyserver.sdss.org/CasJobs/SubmitJob.aspx ed effettuare il login, eventualmente creando un account nel caso non se ne fosse
@@ -19,9 +19,10 @@ FROM SpecObj
 ```
 
 e lanciarla cliccando sul pulsante "Submit" presente sulla destra.
-Quando la query passerà a "Finished" possiamo cliccare su "MyDB" dove troviamo la tabella `spectral_data_class`, clicchiamoci sopra.
 
-Clicchiamo su "Download", selezioniamo "Comma Separated Values" dal menu a tendina indicante il formato del file, e premiamo "Go". Quando il file sarà pronto ci sarà il pulsante "Download", salviamo il file all'interno della cartella `/resources`.
+Ricaricare la pagina che ci si presenta fino a quando la query no passerà a "Finished". Possiamo quindi cliccare su "MyDB" dove troviamo la tabella `spectral_data_class`, clicchiamoci sopra.
+
+Clicchiamo su "Download", selezioniamo "Comma Separated Values" dal menu a tendina indicante il formato del file, e premiamo "Go". Quando il file sarà pronto ci sarà il pulsante "Download", salviamo il file all'interno della cartella `resources`.
 
 ### AWS e Terraform
 Installare aws-cli https://docs.aws.amazon.com/cli/latest/userguide/install-cliv2-linux.html
