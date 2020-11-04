@@ -1,18 +1,3 @@
-# Build Infrastructure
-# https://learn.hashicorp.com/tutorials/terraform/aws-build
-
-# Setting Up an AWS EC2 instance with SSH access using Terraform
-# https://medium.com/@hmalgewatta/setting-up-an-aws-ec2-instance-with-ssh-access-using-terraform-c336c812322f
-
-# Can i do ssh into my ec2 instance created by terraform?
-# https://stackoverflow.com/questions/59708577/can-i-do-ssh-into-my-ec2-instance-created-by-terraform
-
-
-# Resource: aws_emr_cluster, Example bootable config
-# https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/emr_cluster#example-bootable-config
-
-
-
 terraform {
   required_providers {
     aws = {
