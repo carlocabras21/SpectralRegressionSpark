@@ -90,9 +90,9 @@ Attendere che lo script finisca.
 
 I risultati relativi a RMSE e tempi di calcolo si troveranno nella cartella `S3/spectral-regression-spark-bucket/results_2xm4large_linear_<date-time>` all'interno del file `PART-00000`.
 
-** Lanciare lo script nuovamente impostando  `regression_type = "decision-tree"` **
+**Lanciare lo script nuovamente impostando  `regression_type = "decision-tree"`**
 
-** Lanciare lo script nuovamente impostando  `regression_type = "random-forest"` **
+**Lanciare lo script nuovamente impostando  `regression_type = "random-forest"`**
 
 ## In generale
 
