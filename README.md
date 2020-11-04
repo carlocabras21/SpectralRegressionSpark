@@ -52,43 +52,42 @@ Una volta connessi, tornare in locale premendo `Ctrl + D`.
 ### Impostazione cluster
 In `cluster.tf`:  
 
-`212. `instance_type  = "m4.large"`
-
-`213. `instance_count = 2`.
+`212. instance_type  = "m4.large"`  
+`213. instance_count = 2`.  
 
 ### Impostazione script
 In `SpectralRegressionSpark.py`, impostare:
 
-`20. test                = False`  
-`21. write_results_in_S3 = True`
+`20. test                = False`   
+`21. write_results_in_S3 = True`    
 
-`24. two_classes_dataset = False`
+`24. two_classes_dataset = False`   
 
-`31. regression_type = "linear"`
-`32. # regression_type = "decision-tree"`
-`33. # regression_type = "random-forest"` 
+`31. regression_type = "linear"`    
+`32. # regression_type = "decision-tree"`   
+`33. # regression_type = "random-forest"`   
 
-`36. test_on_single_classes = True`
+`36. test_on_single_classes = True` 
 
-`40. slaves = "2xm4large"`
+`40. slaves = "2xm4large"`  
 
 ### Lancio script
 
 Inviare lo script via SSH al cluster tramite il comando `scp`:
 
-`scp -i chiave.pem SpectralRegressionSpark.py hadoop@<public-dns>:∼/`
+`scp -i chiave.pem SpectralRegressionSpark.py hadoop@<public-dns>:∼/`   
 
 Connettersi nuovamente tramite SSH:
 
-`ssh -i chiave.pem hadoop@<public-dns>`
+`ssh -i chiave.pem hadoop@<public-dns>` 
 
 Lanciare lo script con:
 
-`spark-submit --deploy-mode cluster SpectralRegressionSpark.py`
+`spark-submit --deploy-mode cluster SpectralRegressionSpark.py` 
 
 Attendere che lo script finisca.
 
-I risultati relativi a RMSE e tempi di calcolo si troveranno nella cartella `S3/spectral-regression-spark-bucket/results_2xm4large_linear_<date-time>` all'interno del file `PART-00000`.
+I risultati relativi a RMSE e tempi di calcolo si troveranno nella cartella `S3/spectral-regression-spark-bucket/results_2xm4large_linear_<date-time>` all'interno del file `PART-00000`.   
 
 **Lanciare lo script nuovamente impostando  `regression_type = "decision-tree"`**
 
