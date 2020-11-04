@@ -47,9 +47,9 @@ Il valore di `aws_session_token` dentro Vocareum assegnarlo al campo `default` d
 
 
 
-## Esecuzione con istanze m4
+## Esecuzione con 2 istanze m4
 
-### Impostazione cluster
+### Impostazione e creazione cluster
 In `cluster.tf`:  
 
 `212. instance_type  = "m4.large"`  
@@ -81,7 +81,7 @@ In `SpectralRegressionSpark.py`, impostare:
 
 ### Lancio script
 
-Inviare lo script via SSH al cluster tramite il comando `scp`:
+Inviare lo script via SSH al cluster tramite il comando `scp` in un terminale sempre nella cartella del progetto:
 
 `scp -i chiave.pem SpectralRegressionSpark.py hadoop@<public-dns>:∼/`   
 
@@ -95,7 +95,7 @@ Lanciare lo script con:
 
 Attendere che lo script finisca.
 
-I risultati relativi a RMSE e tempi di calcolo si troveranno nella cartella `S3/spectral-regression-spark-bucket/results_2xm4large_linear_<date-time>` all'interno del file `PART-00000`.   
+I risultati relativi a rmse e tempi di calcolo si troveranno nella cartella `S3/spectral-regression-spark-bucket/results_2xm4large_linear_<date-time>` all'interno del file `PART-00000`.   
 
 **Lanciare lo script nuovamente impostando  `regression_type = "decision-tree"`**
 
