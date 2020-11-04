@@ -29,6 +29,7 @@ Installare aws-cli https://docs.aws.amazon.com/cli/latest/userguide/install-cliv
 Installare Terraform https://learn.hashicorp.com/tutorials/terraform/install-cli
 
 Creare un account su AWS Edcuate https://aws.amazon.com/it/education/awseducate/
+
 Dopo  aver effettuato il login, cliccare in alto a destra su "AWS Account", poi nel bottone centrale "AWS Edcuate Starter Account". Ci troviamo davanti la pagina di Vocareum da cui possiamo controllare quanti crediti ci rimangono ed accedere ad AWS.
 
 Accedere ad AWS tramite "AWS Console"
@@ -47,6 +48,7 @@ In `cluster.tf`, riga 212, impostare `instance_type = "m4.large"`. Riga 213, `in
 
 ### Impostazione script
 In `SpectralRegressionSpark.py`, impostare:
+
 20. `test                = False`  
 21. `write_results_in_S3 = True`
 
