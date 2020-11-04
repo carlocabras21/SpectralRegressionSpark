@@ -50,7 +50,11 @@ Una volta connessi, tornare in locale premendo `Ctrl + D`.
 ## Esecuzione con istanze m4
 
 ### Impostazione cluster
-In `cluster.tf`, riga 212, impostare `instance_type = "m4.large"`. Riga 213, `instance_count = 2`.
+In `cluster.tf`:  
+
+212. `instance_type  = "m4.large"`
+
+213. `instance_count = 2`.
 
 ### Impostazione script
 In `SpectralRegressionSpark.py`, impostare:
@@ -79,3 +83,7 @@ Connettersi nuovamente tramite SSH
 
 Lanciare lo script con
 `spark-submit --deploy-mode cluster SpectralRegressionSpark.py`
+
+Attendere che lo script finisca.
+
+I risultati relativi a RMSE e tempi di calcolo si troveranno nella cartella `S3/spectral-regression-spark-bucket/results_2xm4large_linear_<date-time>` all'interno del file `PART-00000`.
