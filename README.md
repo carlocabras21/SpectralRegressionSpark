@@ -37,9 +37,15 @@ Accedere ad AWS tramite "AWS Console"
 Da "Servizi" in alto a sinistra, andare su "EC2". Nella sezione "Risorse" al centro della pagina, clicchiamo quindi su "Coppie di chiavi", poi su "Crea una coppia di chiavi". Inseriamo il nome, ad esempio "chiave", scegliamo come formato "pem" e clicchiamo su "Crea una coppia di chiavi". Salviamo il file `chiave.pem` all'interno della cartella principale del progetto.
 
 ### Credenziali
-Dalla pagina Vocareum, clicchiamo su "Account Details". Sotto la voce "AWS CLI" clicchiamo il pulsante "Show". Copiamo le credenziali nel file access_variables.tf
+Dalla pagina Vocareum, clicchiamo su "Account Details". Sotto la voce "AWS CLI" clicchiamo il pulsante "Show". Copiamo le credenziali nel file `access_variables.tf`
 
+Creare il cluster lanciando `terraform apply --auto-approve`
 
+Verificare che tutto sia avvenuto correttamente connettendosi via SSH con
+
+`ssh -i chiave.pem hadoop@<public-dns>` dove `<public-dns>` è l'indirizzo che terraform ha restituito come output.
+
+Una volta connessi, tornare in locale premendo `Ctrl + D`.
 
 ## Esecuzione con istanze m4
 
@@ -56,7 +62,20 @@ In `SpectralRegressionSpark.py`, impostare:
 
 31. `regression_type = "linear"`
 32. `# regression_type = "decision-tree"`
-33. `# regression_type = "random-forest"`  
+33. `# regression_type = "random-forest"` 
+
+36. `test_on_single_classes = True`
 
 40. `slaves = "2xm4large"`
 
+### Lancio script
+
+Inviare lo script via SSH al cluster tramite il comando `scp`:
+
+`scp -i chiave.pem SpectralRegressionSpark.py hadoop@<public-dns>:∼/`
+
+Connettersi nuovamente tramite SSH
+`ssh -i chiave.pem hadoop@<public-dns>`
+
+Lanciare lo script con
+`spark-submit --deploy-mode cluster SpectralRegressionSpark.py`
