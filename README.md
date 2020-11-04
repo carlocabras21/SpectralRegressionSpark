@@ -38,8 +38,11 @@ Da "Servizi" in alto a sinistra, andare su "EC2". Nella sezione "Risorse" al cen
 
 ### Credenziali
 Dalla pagina Vocareum, clicchiamo su "Account Details". Sotto la voce "AWS CLI" clicchiamo il pulsante "Show". Copiamo ed incolliamo le credenziali nel file `access_variables.tf`:
+
 Il valore di `aws_access_key` dentro Vocareum assegnarlo al campo `default` di `access-key` in `access_variables.tf`, come stringa. 
+
 Il valore di `aws_secret_access` dentro Vocareum assegnarlo al campo `default` di `secret-key` in `access_variables.tf`, come stringa.  
+
 Il valore di `aws_session_token` dentro Vocareum assegnarlo al campo `default` di `token`  in `access_variables.tf`, come stringa.  
 
 
