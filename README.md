@@ -107,19 +107,19 @@ Creare un cluster con 4 istanze `c4.large`.
 
 Dentro `SpectralRegressionSpark.py` impostare:
 
-`20. test                = False`  
-`21. write_results_in_S3 = True`
+`20. test                = False`   
+`21. write_results_in_S3 = True`    
 
-`24. two_classes_dataset = True`
-`26. filter_type = "star-galaxy"`
-`27. # filter_type = "star-qso"`
-`28. # filter_type = "galaxy-qso"`
+`24. two_classes_dataset = True`    
+`26. filter_type = "star-galaxy"`   
+`27. # filter_type = "star-qso"`    
+`28. # filter_type = "galaxy-qso"`  
 
-`31. regression_type = "linear"`
-`32. # regression_type = "decision-tree"`
-`33. # regression_type = "random-forest"` 
+`31. regression_type = "linear"`    
+`32. # regression_type = "decision-tree"`   
+`33. # regression_type = "random-forest"`   
 
-`36. test_on_single_classes = True`
+`36. test_on_single_classes = True` 
 
 `40. slaves = "4xc4large"`
 
