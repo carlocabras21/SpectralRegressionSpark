@@ -37,6 +37,8 @@ Accedere ad AWS tramite "AWS Console"
 
 Da "Servizi" in alto a sinistra, andare su "EC2". Nella sezione "Risorse" al centro della pagina, clicchiamo quindi su "Coppie di chiavi", poi su "Crea una coppia di chiavi". Inseriamo il nome, ad esempio "chiave", scegliamo come formato "pem" e clicchiamo su "Crea una coppia di chiavi". Salviamo il file `chiave.pem` all'interno della cartella principale del progetto.
 
+Cambiare i permessi con `chmod 400 chiave.pem` in modo che solo il nostro utente possa leggerla
+
 ### Credenziali
 Dalla pagina Vocareum, clicchiamo su "Account Details". Sotto la voce "AWS CLI" clicchiamo il pulsante "Show". Copiamo ed incolliamo le credenziali nel file `access_variables.tf`, in questo modo:
 
